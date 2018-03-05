@@ -1,0 +1,63 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "org.chrishatton.kotlinscripttest"
+        minSdkVersion 26
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    packagingOptions {
+        //exclude 'META-INF/NOTICE'
+    }
+}
+
+configurations {
+    cleanedAnnotations
+}
+
+dependencies {
+
+    implementation "com.sun.phobos:jsr223-api:1.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-script-runtime:$kotlin_version"
+
+    //implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlin_version"
+    implementation files("${buildDir}/libs/annotations-cleaned.jar") { builtBy 'cleanAnnotationsJar' }
+    cleanedAnnotations "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlin_version"
+
+    implementation "org.jetbrains.kotlin:kotlin-script-util:$kotlin_version"
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}
+
+task cleanAnnotationsJar(type:Jar) {
+    configurations.cleanedAnnotations.each { f ->
+        from zipTree(f)
+    }
+    archiveName = "annotations-cleaned.jar"
+    //exclude 'org/jetbrains/annotations/Nls.class'
+    //exclude 'org/jetbrains/annotations/NotNull.class'
+    exclude 'org/jetbrains/annotations/Nullable.class'
+    exclude 'org/jetbrains/annotations/PropertyKey.class'
+    exclude 'org/jetbrains/kotlin/daemon/common/CompileService$TargetPlatform.class'
+}
